@@ -30,6 +30,8 @@ import org.assertj.assertions.generator.description.ClassDescription;
 import org.assertj.assertions.generator.description.GetterDescription;
 import org.assertj.assertions.generator.description.TypeName;
 
+import com.google.common.base.Strings;
+
 public class BaseAssertionGenerator implements AssertionGenerator {
 
   // default file for templates
@@ -237,29 +239,42 @@ public class BaseAssertionGenerator implements AssertionGenerator {
 
   @Override
   public String generateAssertionsEntryPointContentFor(final Set<ClassDescription> classDescriptionSet) {
+    return generateAssertionsEntryPointContentFor(classDescriptionSet, null);
+  }
+
+  private String generateAssertionsEntryPointContentFor(final Set<ClassDescription> classDescriptionSet,
+      final String customPackage) {
     if (classDescriptionSet == null || classDescriptionSet.isEmpty()) return "";
     final String entryPointAssertionsClassTemplateContent = entryPointAssertionsClassTemplate.getContent();
     String entryPointAssertionsClassContent = new StringBuilder(entryPointAssertionsClassTemplateContent).toString();
     // resolve template markers
-    String entryPointAssertionsClassPackage = determineEntryPointsAssertionsClassPackage(classDescriptionSet);
+    String entryPointAssertionsClassPackage = Strings.isNullOrEmpty(customPackage) ? determineEntryPointsAssertionsClassPackage(classDescriptionSet)
+        : customPackage;
     entryPointAssertionsClassContent = entryPointAssertionsClassContent.replaceAll(PACKAGE_REGEXP,
-                                                                                   entryPointAssertionsClassPackage);
+        entryPointAssertionsClassPackage);
     String entryPointAssertionsImportsContent = generateEntryPointsAssertionsImportFor(classDescriptionSet,
-                                                                                       entryPointAssertionsClassPackage);
+        entryPointAssertionsClassPackage);
     entryPointAssertionsClassContent = entryPointAssertionsClassContent.replace(IMPORTS,
-                                                                                entryPointAssertionsImportsContent);
+        entryPointAssertionsImportsContent);
     String allEntryPointsAssertionContent = generateAssertThatEntryPointsAssertionsFor(classDescriptionSet);
     entryPointAssertionsClassContent = entryPointAssertionsClassContent.replaceAll(ALL_ASSERTIONS_ENTRY_POINTS,
-                                                                                   allEntryPointsAssertionContent);
+        allEntryPointsAssertionContent);
     return entryPointAssertionsClassContent;
   }
 
   @Override
   public File generateAssertionsEntryPointFor(final Set<ClassDescription> classDescriptionSet) throws IOException {
+    return generateAssertionsEntryPointFor(classDescriptionSet, null);
+  }
+
+  @Override
+  public File generateAssertionsEntryPointFor(final Set<ClassDescription> classDescriptionSet, final String customPackage)
+      throws IOException {
     if (classDescriptionSet == null || classDescriptionSet.isEmpty()) return null;
-    String assertionsEntryPointFileContent = generateAssertionsEntryPointContentFor(classDescriptionSet);
     // create the assertion entry point file, located in its package directory starting from targetBaseDirectory
-    String entryPointAssertionsClassPackage = determineEntryPointsAssertionsClassPackage(classDescriptionSet);
+    String entryPointAssertionsClassPackage = Strings.isNullOrEmpty(customPackage) ? determineEntryPointsAssertionsClassPackage(classDescriptionSet)
+        : customPackage;
+    String assertionsEntryPointFileContent = generateAssertionsEntryPointContentFor(classDescriptionSet, entryPointAssertionsClassPackage);
     String targetDirectory = getDirectoryPathCorrespondingToPackage(entryPointAssertionsClassPackage);
     // build any needed directories
     new File(targetDirectory).mkdirs();

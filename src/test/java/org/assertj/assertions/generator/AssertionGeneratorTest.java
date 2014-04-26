@@ -137,6 +137,18 @@ public class AssertionGeneratorTest implements NestedClassesTest, BeanWithExcept
     String expectedContent = readFileToString(new File("src/test/resources/Assertions.expected.txt"));
     assertThat(assertionsEntryPointFile).as("check entry point class content").hasContent(expectedContent);
   }
+  
+  @Test
+  public void should_generate_assertion_entry_point_class_file_with_custom_package() throws Exception {
+    // GIVEN : classes we want to have entry point assertions for
+    Set<ClassDescription> classDescriptionSet = getClassDescriptionsOf(Ring.class, Race.class, ArtWork.class,
+        Name.class, Player.class, Movie.class, TolkienCharacter.class, TreeEnum.class, Movie.PublicCategory.class);
+    // WHEN
+    final File assertionsEntryPointFile = assertionGenerator.generateAssertionsEntryPointFor(classDescriptionSet, "my.custom.package");
+    // THEN
+    String expectedContent = readFileToString(new File("src/test/resources/AssertionsWithCustomPackage.expected.txt"));
+    assertThat(assertionsEntryPointFile).as("check entry point class content").hasContent(expectedContent).hasParent("target/my/custom/package");
+  }
 
   @Test
   public void should_generate_bdd_assertion_entry_point_class_file() throws Exception {
